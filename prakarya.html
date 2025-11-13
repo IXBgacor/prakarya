@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Ingatan Multiplayer</title>
+    <style>
+        * {margin:0;padding:0;box-sizing:border-box;}
+
+        body{
+            font-family:'Poppins',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+            background:linear-gradient(-45deg,#ee7752,#e73c7e,#23a6d5,#23d5ab);
+            background-size:400% 400%;animation:gradientBG 15s ease infinite;
+            color:#fff;min-height:100vh;overflow-x:hidden;position:relative;padding:10px;
+        }
+        @keyframes gradientBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        body::before{
+            content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+            background:radial-gradient(circle at 20% 80%,rgba(120,119,198,.3)0%,transparent 50%),
+                       radial-gradient(circle at 80% 20%,rgba(255,119,198,.3)0%,transparent 50%);
+            pointer-events:none;z-index:-1;
+        }
+
+        .container{
+            max-width:100%;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;
+            justify-content:center;align-items:center;position:relative;z-index:1;padding:15px;
+        }
+
+        .panel{
+            background:rgba(255,255,255,.15);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+            border-radius:25px;padding:25px 20px;box-shadow:0 25px 45px rgba(0,0,0,.1);
+            border:1px solid rgba(255,255,255,.2);transition:all .5s cubic-bezier(.4,0,.2,1);
+            position:relative;overflow:hidden;width:100%;max-width:420px;margin:10px 0;
+        }
+        .panel h1{
+            font-size:clamp(1.8rem,6vw,2.8rem);margin-bottom:20px;
+            background:linear-gradient(45deg,#fff,#f0f0f0);-webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;background-clip:text;
+            text-shadow:0 0 30px rgba(255,255,255,.5);animation:glow 2s ease-in-out infinite alternate;
+            line-height:1.2;display:flex;align-items:center;gap:12px;
+        }
+        .panel h1::before{
+            content:"🧠";font-size:1.6em;
+        }
+        @keyframes glow{from{filter:drop-shadow(0 0 10px rgba(255,255,255,.5))}to{filter:drop-shadow(0 0 20px rgba(255,255,255,.8))}}
+
+        .btn{
+            background:linear-gradient(145deg,rgba(255,255,255,.2),rgba(255,255,255,.1));
+            backdrop-filter:blur(10px);border:2px solid rgba(255,255,255,.3);border-radius:15px;
+            padding:18px 25px;font-size:clamp(1rem,4vw,1.2rem);font-weight:600;color:#fff;cursor:pointer;
+            transition:all .4s cubic-bezier(.25,.46,.45,.94);margin:12px 0;width:100%;position:relative;
+            overflow:hidden;text-transform:uppercase;letter-spacing:1px;min-height:60px;
+            display:flex;align-items:center;justify-content:center;gap:12px;
+        }
+        .btn::before{
+            content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+            background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);
+            transition:left .6s;
+        }
+        .btn:hover,.btn:active{transform:translateY(-5px) scale(1.02);box-shadow:0 20px 40px rgba(0,0,0,.3);border-color:rgba(255,255,255,.6);}
+        .btn:hover::before{left:100%;}
+        .btn-primary{background:linear-gradient(45deg,#ff6b6b,#feca57);}
+        .btn-success{background:linear-gradient(45deg,#48dbfb,#0abde3);}
+        .btn-warning{background:linear-gradient(45deg,#f093fb,#f5576c);}
+        .btn-secondary{background:transparent;border-color:rgba(255,255,255,.5);color:rgba(255,255,255,.9);}
+
+        /* ICON ADMIN & PLAYER */
+        #adminBtn::before {content:"😛";font-size:1.4em;}
+        #playerBtn::before {content:"🤩";font-size:1.4em;}
+
+        .input-group{margin:20px 0;width:100%;}
+        input[type=text],input[type=password]{
+            width:100%;padding:20px;font-size:clamp(1rem,4vw,1.1rem);
+            border:2px solid rgba(255,255,255,.3);border-radius:15px;
+            background:rgba(255,255,255,.1);backdrop-filter:blur(10px);color:#fff;
+            transition:all .3s ease;font-family:inherit;min-height:60px;
+        }
+        input[type=text]::placeholder,input[type=password]::placeholder{color:rgba(255,255,255,.7);}
+        input:focus{outline:none;border-color:#fff;box-shadow:0 0 20px rgba(255,255,255,.3);transform:scale(1.01);}
+
+        /* ADMIN LEADERBOARD */
+        #adminLeaderboard{list-style:none;max-height:70vh;overflow-y:auto;margin:20px 0;padding:15px;
+            background:rgba(255,255,255,.05);border-radius:15px;backdrop-filter:blur(10px);
+            font-size:clamp(.95rem,3.8vw,1.05rem);}
+        #adminLeaderboard li{padding:16px 18px;margin:10px 0;background:rgba(255,255,255,.15);
+            border-radius:15px;transition:all .3s ease;display:flex;justify-content:space-between;
+            align-items:center;font-weight:600;position:relative;overflow:hidden;min-height:68px;
+            border:2px solid transparent;word-break:break-word;}
+        #adminLeaderboard li::before{
+            content:attr(data-rank);font-size:clamp(1.3rem,5.5vw,1.6rem);font-weight:900;margin-right:15px;
+            background:linear-gradient(45deg,#ffd700,#ffed4e);-webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;min-width:38px;text-align:center;
+        }
+        .player-entry{flex:1;display:flex;justify-content:space-between;align-items:center;width:100%;}
+        .player-name{font-weight:700;color:#fff;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .player-score{font-size:clamp(1.1rem,4.5vw,1.3rem);font-weight:900;color:#ffd700;
+            background:rgba(255,215,0,.2);padding:6px 12px;border-radius:12px;min-width:70px;
+            text-align:center;box-shadow:0 0 15px rgba(255,215,0,.4);}
+        #adminLeaderboard li:nth-child(1){border:3px solid #ffd700;box-shadow:0 0 35px rgba(255,215,0,.7);transform:scale(1.03);background:rgba(255,215,0,.25);}
+        #adminLeaderboard li:nth-child(2){border:2px solid #c0c0c0;box-shadow:0 0 25px rgba(192,192,192,.6);}
+        #adminLeaderboard li:nth-child(3){border:2px solid #cd7f32;box-shadow:0 0 25px rgba(205,127,50,.6);}
+
+        .online-info{font-size:clamp(1.1rem,4.5vw,1.3rem);margin-bottom:15px;text-align:center;opacity:.9;padding:10px;background:rgba(255,255,255,.1);border-radius:12px;}
+
+        /* TIMER */
+        .timer-container{margin:25px 0;text-align:center;width:100%;}
+        #timer{width:100%;height:28px;background:rgba(255,255,255,.12);border-radius:50px;overflow:hidden;
+            box-shadow:inset 0 3px 12px rgba(0,0,0,.3);margin-bottom:15px;border:2px solid rgba(255,255,255,.2);}
+        #timerBar{height:100%;background:linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#00ff88);width:100%;
+            border-radius:50px;transition:width .15s linear;position:relative;overflow:hidden;}
+        #timerBar::after{
+            content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+            background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);
+            animation:shimmer 1.8s infinite;
+        }
+        @keyframes shimmer{0%{left:-100%}100%{left:100%}}
+        #timerText{font-size:clamp(2rem,8vw,2.8rem);font-weight:900;text-shadow:0 0 25px currentColor;
+            margin-top:8px;letter-spacing:2px;animation:timerPulse 1.5s ease-in-out infinite;}
+        @keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+        .low-time #timerBar{background:linear-gradient(90deg,#ff3b30,#ff9500);animation:flash 1s infinite alternate;}
+        @keyframes flash{from{opacity:1}to{opacity:.8}}
+
+        /* GAME GRID */
+        #gameGrid{
+            display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);
+            gap:clamp(8px,2vw,12px);max-width:95vw;max-height:45vh;width:100%;margin:20px auto;
+            padding:10px;justify-items:center;align-items:center;
+        }
+        .card{
+            aspect-ratio:1;perspective:1000px;cursor:pointer;width:100%;height:22vw;
+            max-height:90px;max-width:90px;
+        }
+        .card-inner{
+            position:relative;width:100%;height:100%;transition:transform .7s cubic-bezier(.25,.46,.45,.94);
+            transform-style:preserve-3d;
+        }
+        .card.flipped .card-inner{transform:rotateY(180deg);}
+        .card.matched .card-inner{transform:rotateY(180deg);}
+        .card-front,.card-back{
+            position:absolute;width:100%;height:100%;backface-visibility:hidden;
+            border-radius:18px;display:flex;align-items:center;justify-content:center;
+            box-shadow:0 12px 30px rgba(0,0,0,.3);border:2.5px solid rgba(255,255,255,.25);
+        }
+        .card-back{
+            background:linear-gradient(145deg,rgba(255,255,255,.18),rgba(255,255,255,.08));
+            backdrop-filter:blur(15px);
+        }
+        .card-front{
+            background:#fff;color:#333;transform:rotateY(180deg);overflow:hidden;
+        }
+        .card-front img{
+            width:85%;height:85%;object-fit:contain;border-radius:12px;
+            box-shadow:0 4px 15px rgba(0,0,0,.2);
+        }
+        .card.matched{filter:drop-shadow(0 0 28px #00ff88);animation:matchGlow 1.2s ease-out;}
+        @keyframes matchGlow{0%{filter:drop-shadow(0 0 0px #00ff88)}50%{filter:drop-shadow(0 0 35px #00ff88)}100%{filter:drop-shadow(0 0 25px #00ff88)}}
+
+        #score{font-size:clamp(1.8rem,6vw,2.8rem);font-weight:800;margin:20px 0;
+            text-shadow:0 0 30px currentColor;animation:scorePulse 2s ease-in-out infinite;text-align:center;}
+        @keyframes scorePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+
+        /* RESULTS */
+        #leaderboard{list-style:none;margin:25px 0;padding:0;width:100%;}
+        #leaderboard li{padding:18px 15px;margin:10px 0;background:rgba(255,255,255,.15);
+            border-radius:15px;font-size:clamp(1rem,4vw,1.2rem);font-weight:600;
+            display:flex;justify-content:space-between;align-items:center;transition:all .3s ease;
+            position:relative;overflow:hidden;min-height:65px;}
+        #leaderboard li::before{
+            content:attr(data-rank);font-size:clamp(1.1rem,5vw,1.4rem);font-weight:900;margin-right:15px;
+            background:linear-gradient(45deg,#ffd700,#ffed4e);-webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;min-width:30px;
+        }
+        #leaderboard .player-entry{flex:1;display:flex;justify-content:space-between;align-items:center;}
+        #leaderboard .player-name{font-weight:700;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        #leaderboard .player-score{font-size:clamp(1.1rem,4.5vw,1.3rem);font-weight:900;color:#ffd700;
+            background:rgba(255,215,0,.2);padding:6px 12px;border-radius:12px;min-width:70px;
+            text-align:center;box-shadow:0 0 15px rgba(255,215,0,.4);}
+        #leaderboard li:nth-child(1){border:3px solid #ffd700;box-shadow:0 0 30px rgba(255,215,0,.5);transform:scale(1.02);}
+        #leaderboard li:nth-child(2){border:2px solid #c0c0c0;box-shadow:0 0 20px rgba(192,192,192,.5);}
+        #leaderboard li:nth-child(3){border:2px solid #cd7f32;box-shadow:0 0 20px rgba(205,127,50,.5);}
+
+        #winner{font-size:clamp(1.6rem,6vw,2.2rem);font-weight:900;margin:25px 0;padding:20px 15px;
+            background:linear-gradient(45deg,#00ff88,#00cc6a);-webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;background-clip:text;text-shadow:0 0 40px #00ff88;
+            animation:winnerBounce 1s ease infinite;text-align:center;line-height:1.3;}
+        @keyframes winnerBounce{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+        .error{color:#ff6b6b;background:rgba(255,107,107,.2);padding:15px;border-radius:12px;
+            margin:15px 0;border-left:5px solid #ff6b6b;animation:shake .5s ease-in-out;
+            font-size:clamp(.9rem,4vw,1rem);text-align:center;}
+        @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+        .waiting-dots::after{content:'...';animation:dots 1.5s steps(4,end) infinite;}
+        @keyframes dots{0%,20%{content:'.'}40%{content:'..'}60%,100%{content:'...'}}
+
+        #waitingMessage{font-size:clamp(1.2rem,5vw,1.5rem);margin-bottom:25px;text-align:center;line-height:1.4;}
+        #waitingPlayers{font-size:clamp(1rem,4vw,1.2rem);opacity:.8;text-align:center;margin-top:15px;}
+
+        .waiting-status{
+            margin:20px 0;padding:15px;background:rgba(255,255,255,.1);border-radius:15px;
+            text-align:center;font-size:clamp(1rem,4vw,1.2rem);backdrop-filter:blur(8px);
+            border:1px solid rgba(255,255,255,.2);
+        }
+        .waiting-status.ready{
+            background:linear-gradient(45deg,rgba(0,255,136,.2),rgba(0,204,106,.2));
+            border-color:#00ff88;color:#00ff88;
+        }
+
+        .team-credits{
+            position:fixed;bottom:10px;left:10px;font-size:clamp(.7rem,2.5vw,.85rem);
+            background:rgba(255,255,255,.1);backdrop-filter:blur(10px);padding:8px 12px;
+            border-radius:12px;border:1px solid rgba(255,255,255,.2);opacity:.8;
+            z-index:1000;line-height:1.4;
+        }
+        .team-credits strong{color:#ffd700;}
+
+        @media (max-width:480px){
+            body{padding:5px;}.panel{padding:20px 15px;margin:5px 0;}
+            .card{height:18vw;}#gameGrid{gap:6px;padding:8px;}
+            .btn{padding:16px 20px;min-height:55px;gap:10px;}.player-name{max-width:50%;}
+            .team-credits{bottom:5px;left:5px;padding:6px 10px;font-size:.75rem;}
+            .panel h1::before{font-size:1.4em;}
+            #adminBtn::before, #playerBtn::before{font-size:1.2em;}
+        }
+        @media (max-height:600px){#gameGrid{max-height:40vh;}.card{height:18vw;}}
+        .hidden{display:none !important;}
+
+        ::-webkit-scrollbar{width:6px;}
+        ::-webkit-scrollbar-track{background:rgba(255,255,255,.1);border-radius:10px;}
+        ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.3);border-radius:10px;}
+        ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.5);}
+    </style>
+</head>
+<body>
+    <!-- NAMA TIM DI POJOK -->
+    <div class="team-credits">
+        <strong>Team:</strong> Dika • Arya • Joan • Akrom • Susan
+    </div>
+
+    <div class="container">
+        <!-- HOME -->
+        <div id="homePage" class="panel">
+            <h1>Memory Ingatan</h1>
+            <p style="font-size:clamp(1rem,4vw,1.2rem);margin-bottom:30px;opacity:.9;text-align:center;">
+                Multiplayer • 30 Pemain • 6 Menit
+            </p>
+            <button id="adminBtn" class="btn btn-warning">ADMIN</button>
+            <button id="playerBtn" class="btn btn-primary">PLAYER</button>
+        </div>
+
+        <!-- ADMIN LOGIN -->
+        <div id="adminLogin" class="panel hidden">
+            <h1>Admin Login</h1>
+            <div class="input-group"><input type="password" id="adminPassword" placeholder="Kode Rahasia"></div>
+            <button id="adminSubmit" class="btn btn-warning">Masuk</button>
+            <p id="adminError" class="error hidden"></p>
+            <button id="backHome1" class="btn btn-secondary">Kembali</button>
+        </div>
+
+        <!-- ADMIN PAGE -->
+        <div id="adminPage" class="panel hidden">
+            <h1>Admin Panel</h1>
+            <div class="online-info">Online: <span id="onlineCount">0</span> | Live Leaderboard</div>
+            <ul id="adminLeaderboard"></ul>
+            <button id="startGameBtn" class="btn btn-success" style="font-size:clamp(1.1rem,4.5vw,1.3rem);padding:22px;margin-top:20px;">
+                START GAME (6 Menit)
+            </button>
+            <button id="backHome2" class="btn btn-secondary">Keluar</button>
+        </div>
+
+        <!-- PLAYER LOGIN -->
+        <div id="playerLogin" class="panel hidden">
+            <h1>Gabung Game</h1>
+            <div class="input-group"><input type="text" id="playerName" placeholder="Nama Keren Anda" maxlength="12"></div>
+            <button id="playerSubmit" class="btn btn-primary">Masuk Room</button>
+            <button id="backHome3" class="btn btn-secondary">Kembali</button>
+        </div>
+
+        <!-- WAITING ROOM -->
+        <div id="waitingRoom" class="panel hidden">
+            <h1>Menunggu</h1>
+            <p id="waitingMessage">Admin sedang mempersiapkan permainan<span class="waiting-dots"></span></p>
+            <div id="waitingPlayers" class="waiting-status">0 pemain siap</div>
+            <button id="backHome4" class="btn btn-secondary">Keluar</button>
+        </div>
+
+        <!-- PLAYER GAME -->
+        <div id="gamePage" class="panel hidden">
+            <h1>Memory Match</h1>
+            <div id="score">Skor: 0</div>
+            <div class="timer-container" id="timerContainer">
+                <div id="timer"><div id="timerBar"></div></div>
+                <div id="timerText">6:00</div>
+            </div>
+            <div id="gameGrid"></div>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="resultPage" class="panel hidden">
+            <h1>Hasil Akhir</h1>
+            <ul id="leaderboard"></ul>
+            <div id="winner"></div>
+            <button id="playAgain" class="btn btn-primary">Main Lagi</button>
+            <button id="backHome5" class="btn btn-secondary">Home</button>
+        </div>
+    </div>
+
+    <!-- FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBMUpXPoVPKDikFREu_kX5V2QasjPDrSjk",
+            authDomain: "memory-ingatan-multiplayer.firebaseapp.com",
+            databaseURL: "https://memory-ingatan-multiplayer-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "memory-ingatan-multiplayer",
+            storageBucket: "memory-ingatan-multiplayer.appspot.com",
+            messagingSenderId: "745382901234",
+            appId: "1:745382901234:web:abc123xyz456"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const gameStateRef = db.ref('gameState');
+        const playersRef = db.ref('players');
+        const startTimeRef = db.ref('startTime');
+
+        let isAdmin = false, playerId = null, playerName = '';
+        let currentScore = 0, gameActive = false;
+        let firstCard = null, secondCard = null, lockBoard = false, matches = 0;
+        let timerInterval = null;
+        const gameDuration = 360;
+
+        // GAMBAR LANGSUNG DARI URL (FOTO KAMU)
+        const cardImages = [
+            'kunyit.png', // Kunyit (hitam)
+            'lengkuas.png', // Kunyit (putih)
+            'ikan-sarden.png', // Ikan Nila
+            'ikan-nila.png', // Ikan Salmon
+            'ikan-salmon.png', // Ikan Sarden
+            'ikan-tuna.png', // Ikan Tuna
+            'beras-kencur.png', // Jahe
+            'jahe.png'  // Lengkuas
+        ];
+        let cardsArray = [];
+
+        const pages = {
+            home:'homePage',adminLogin:'adminLogin',admin:'adminPage',
+            playerLogin:'playerLogin',waiting:'waitingRoom',
+            game:'gamePage',result:'resultPage'
+        };
+
+        gameStateRef.set('waiting').catch(() => {});
+
+        function showPage(k){
+            Object.values(pages).forEach(id=>document.getElementById(id).classList.add('hidden'));
+            document.getElementById(pages[k]).classList.remove('hidden');
+        }
+
+        function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));
+            [a[i],a[j]]=[a[j],a[i]];}return a;}
+
+        // EVENT
+        document.getElementById('adminBtn').onclick =()=>showPage('adminLogin');
+        document.getElementById('playerBtn').onclick =()=>showPage('playerLogin');
+
+        document.getElementById('adminSubmit').onclick =()=>{
+            const pw=document.getElementById('adminPassword').value;
+            if(pw==='Dika12345'){isAdmin=true;showPage('admin');loadAdminLeaderboard();
+                document.getElementById('adminError').classList.add('hidden');}
+            else{document.getElementById('adminError').textContent='Kode Salah!';
+                document.getElementById('adminError').classList.remove('hidden');}
+        };
+
+        document.getElementById('playerSubmit').onclick =()=>{
+            playerName=document.getElementById('playerName').value.trim();
+            if(playerName && playerName.length>=2) joinGameAsPlayer();
+            else alert('Nama minimal 2 karakter!');
+        };
+
+        ['backHome1','backHome2','backHome3','backHome4','backHome5'].forEach(id=>{
+            document.getElementById(id).onclick =()=>{if(playerId)playersRef.child(playerId).remove();
+                resetGameState();showPage('home');};
+        });
+
+        function loadAdminLeaderboard(){
+            playersRef.on('value',snap=>{
+                const players = snap.val()||{};
+                const lb = document.getElementById('adminLeaderboard');
+                const cnt = document.getElementById('onlineCount');
+                const arr = Object.values(players).filter(p=>p&&p.online)
+                    .sort((a,b)=>(b.score||0)-(a.score||0));
+                lb.innerHTML=''; let n=0;
+                arr.forEach((p,i)=>{if(n<30){n++;
+                    const li=document.createElement('li');li.dataset.rank=i+1;
+                    li.innerHTML=`<div class="player-entry"><span class="player-name">${p.name}</span>
+                                  <span class="player-score">${p.score||0}</span></div>`;
+                    lb.appendChild(li);}});
+                cnt.textContent=n;
+            });
+        }
+
+        document.getElementById('startGameBtn').onclick =()=>{
+            gameStateRef.set('playing');
+            startTimeRef.set(firebase.database.ServerValue.TIMESTAMP);
+            const b=document.getElementById('startGameBtn');b.textContent='Game Dimulai!';b.disabled=true;
+        };
+
+        function joinGameAsPlayer(){
+            playerId='p_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
+            playersRef.child(playerId).set({name:playerName,score:0,online:true,
+                joinedAt:firebase.database.ServerValue.TIMESTAMP});
+            playersRef.child(playerId).onDisconnect().remove();
+            showPage('waiting');
+            listenForGameEvents();
+        }
+
+        function listenForGameEvents(){
+            gameStateRef.on('value', s => {
+                const state = s.val();
+                if (state === 'playing' && !gameActive) {
+                    initGame();
+                } else if (state === 'ended') {
+                    showResults();
+                }
+            });
+
+            playersRef.on('value', s => {
+                const players = s.val() || {};
+                let count = 0;
+                Object.values(players).forEach(p => { if (p && p.online) count++; });
+                const el = document.getElementById('waitingPlayers');
+                el.textContent = `${count} pemain siap`;
+                el.className = count >= 2 ? 'waiting-status ready' : 'waiting-status';
+            });
+        }
+
+        function initGame(){
+            showPage('game');currentScore=0;matches=0;gameActive=true;
+            cardsArray=shuffle([...cardImages,...cardImages]);
+            updateScore();createGameBoard();startSyncedTimer();
+        }
+
+        function createGameBoard(){
+            const g=document.getElementById('gameGrid');g.innerHTML='';
+            cardsArray.forEach((src,idx)=>{
+                const c=document.createElement('div');c.className='card';
+                c.dataset.index=idx;c.dataset.image=src;
+                c.innerHTML=`
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <img src="${src}" alt="Kartu ${idx}"
+                                 onerror="this.src='https://via.placeholder.com/80?text=?'">
+                        </div>
+                        <div class="card-back"></div>
+                    </div>`;
+                c.onclick=()=>flipCard(c);g.appendChild(c);
+            });
+        }
+
+        function flipCard(card){
+            if(lockBoard||card.classList.contains('flipped')||
+               card.classList.contains('matched')||!gameActive) return;
+            card.classList.add('flipped');
+            if(!firstCard) firstCard=card;
+            else{secondCard=card;checkForMatch();}
+        }
+
+        function checkForMatch(){
+            lockBoard=true;
+            const match=firstCard.dataset.image===secondCard.dataset.image;
+            if(match){
+                firstCard.classList.add('matched');secondCard.classList.add('matched');
+                currentScore+=10;matches++;updateScore();resetBoard();
+
+                // CEK JIKA SEMUA KARTU SELESAI
+                if(matches === cardImages.length){
+                    setTimeout(restartRound, 800); // RESTART SETELAH SELESAI
+                }
+            }else{
+                setTimeout(()=>{firstCard.classList.remove('flipped');
+                    secondCard.classList.remove('flipped');resetBoard();},1000);
+            }
+        }
+
+        // RESTART RONDE BARU (TANPA RESET SKOR)
+        function restartRound(){
+            matches = 0;
+            firstCard = secondCard = null;
+            lockBoard = false;
+            cardsArray = shuffle([...cardImages, ...cardImages]);
+            createGameBoard();
+            // Efek "Ronde Baru!"
+            const scoreEl = document.getElementById('score');
+            scoreEl.style.animation = 'none';
+            setTimeout(() => scoreEl.style.animation = '', 10);
+        }
+
+        function resetBoard(){[firstCard,secondCard]=[null,null];lockBoard=false;}
+        function updateScore(){
+            document.getElementById('score').textContent=`Skor: ${currentScore}`;
+            if(playerId) playersRef.child(playerId).update({score:currentScore});
+        }
+
+        function startSyncedTimer(){
+            const tc=document.getElementById('timerContainer');
+            const tb=document.getElementById('timerBar');
+            const tt=document.getElementById('timerText');
+
+            startTimeRef.once('value').then(snap=>{
+                const start=snap.val();if(!start) return;
+                clearInterval(timerInterval);
+                timerInterval=setInterval(()=>{
+                    const now=Date.now();
+                    const elapsed=Math.floor((now-start)/1000);
+                    const left=Math.max(0,gameDuration-elapsed);
+                    const pct=(left/gameDuration)*100;
+                    tb.style.width=`${pct}%`;
+                    const m=Math.floor(left/60);
+                    const sec=(left%60).toString().padStart(2,'0');
+                    tt.textContent=`${m}:${sec}`;
+                    if(left<=60) tc.classList.add('low-time');
+                    else tc.classList.remove('low-time');
+                    if(left<=0){
+                        clearInterval(timerInterval);gameActive=false;
+                        if(isAdmin) gameStateRef.set('ended');
+                        else setTimeout(showResults,800);
+                    }
+                },100);
+            });
+        }
+
+        function showResults(){
+            gameActive=false;showPage('result');
+            playersRef.once('value').then(snap=>{
+                const p=snap.val()||{};
+                const arr=Object.values(p).filter(v=>v&&v.online)
+                    .sort((a,b)=>(b.score||0)-(a.score||0));
+                const lb=document.getElementById('leaderboard');
+                const win=document.getElementById('winner');lb.innerHTML='';
+                arr.forEach((pl,i)=>{
+                    const li=document.createElement('li');li.dataset.rank=i+1;
+                    li.innerHTML=`<div class="player-entry"><span class="player-name">${pl.name}</span>
+                                  <span class="player-score">${pl.score||0}</span></div>`;
+                    lb.appendChild(li);
+                });
+                if(arr.length){
+                    const max=arr[0].score;
+                    const winners=arr.filter(v=>(v.score||0)===max);
+                    win.innerHTML=winners.length>1?
+                        `<strong>Seri: ${winners.map(v=>v.name).join(' & ')}!</strong>`:
+                        `<strong>${winners[0].name}</strong> WINNER!`;
+                }
+            });
+        }
+
+        document.getElementById('playAgain').onclick =()=>{
+            resetGameState();showPage(isAdmin?'admin':'playerLogin');
+        };
+
+        function resetGameState(){
+            if(timerInterval) clearInterval(timerInterval);
+            gameActive=false;currentScore=0;matches=0;
+            firstCard=secondCard=null;lockBoard=false;
+            document.getElementById('timerContainer')?.classList.remove('low-time');
+            const b=document.getElementById('startGameBtn');
+            if(b){b.disabled=false;b.textContent='START GAME (6 Menit)';}
+        }
+
+        window.addEventListener('beforeunload',()=>{if(playerId && !isAdmin)playersRef.child(playerId).remove();});
+        document.addEventListener('keydown',e=>{if(e.key==='Escape'){resetGameState();showPage('home');}});
+        console.log('FITUR RESTART RONDE SUDAH AKTIF!');
+    </script>
+</body>
+</html>
