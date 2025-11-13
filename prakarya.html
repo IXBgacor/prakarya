@@ -12,6 +12,7 @@
             background:linear-gradient(-45deg,#ee7752,#e73c7e,#23a6d5,#23d5ab);
             background-size:400% 400%;animation:gradientBG 15s ease infinite;
             color:#fff;min-height:100vh;overflow-x:hidden;position:relative;padding:10px;
+            display:flex;flex-direction:column;
         }
         @keyframes gradientBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
         body::before{
@@ -23,7 +24,8 @@
 
         .container{
             max-width:100%;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;
-            justify-content:center;align-items:center;position:relative;z-index:1;padding:15px;
+            justify-content:flex-start;align-items:center;position:relative;z-index:1;padding:15px;
+            flex:1;
         }
 
         .panel{
@@ -31,6 +33,7 @@
             border-radius:25px;padding:25px 20px;box-shadow:0 25px 45px rgba(0,0,0,.1);
             border:1px solid rgba(255,255,255,.2);transition:all .5s cubic-bezier(.4,0,.2,1);
             position:relative;overflow:hidden;width:100%;max-width:420px;margin:10px 0;
+            flex-shrink:0;
         }
         .panel h1{
             font-size:clamp(1.8rem,6vw,2.8rem);margin-bottom:20px;
@@ -65,8 +68,8 @@
         .btn-secondary{background:transparent;border-color:rgba(255,255,255,.5);color:rgba(255,255,255,.9);}
 
         /* ICON ADMIN & PLAYER */
-        #adminBtn::before {content:"😛";font-size:1.4em;}
-        #playerBtn::before {content:"🤩";font-size:1.4em;}
+        #adminBtn::before {content:"🕊";font-size:1.4em;}
+        #playerBtn::before {content:"🌷";font-size:1.4em;}
 
         .input-group{margin:20px 0;width:100%;}
         input[type=text],input[type=password]{
@@ -79,7 +82,7 @@
         input:focus{outline:none;border-color:#fff;box-shadow:0 0 20px rgba(255,255,255,.3);transform:scale(1.01);}
 
         /* ADMIN LEADERBOARD */
-        #adminLeaderboard{list-style:none;max-height:70vh;overflow-y:auto;margin:20px 0;padding:15px;
+        #adminLeaderboard{list-style:none;max-height:60vh;overflow-y:auto;margin:20px 0;padding:15px;
             background:rgba(255,255,255,.05);border-radius:15px;backdrop-filter:blur(10px);
             font-size:clamp(.95rem,3.8vw,1.05rem);}
         #adminLeaderboard li{padding:16px 18px;margin:10px 0;background:rgba(255,255,255,.15);
@@ -103,7 +106,7 @@
         .online-info{font-size:clamp(1.1rem,4.5vw,1.3rem);margin-bottom:15px;text-align:center;opacity:.9;padding:10px;background:rgba(255,255,255,.1);border-radius:12px;}
 
         /* TIMER */
-        .timer-container{margin:25px 0;text-align:center;width:100%;}
+        .timer-container{margin:25px 0;text-align:center;width:100%;flex-shrink:0;}
         #timer{width:100%;height:28px;background:rgba(255,255,255,.12);border-radius:50px;overflow:hidden;
             box-shadow:inset 0 3px 12px rgba(0,0,0,.3);margin-bottom:15px;border:2px solid rgba(255,255,255,.2);}
         #timerBar{height:100%;background:linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#00ff88);width:100%;
@@ -120,15 +123,30 @@
         .low-time #timerBar{background:linear-gradient(90deg,#ff3b30,#ff9500);animation:flash 1s infinite alternate;}
         @keyframes flash{from{opacity:1}to{opacity:.8}}
 
-        /* GAME GRID */
+        /* GAME GRID - RESPONSIVE */
         #gameGrid{
-            display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);
-            gap:clamp(8px,2vw,12px);max-width:95vw;max-height:45vh;width:100%;margin:20px auto;
-            padding:10px;justify-items:center;align-items:center;
+            display:grid;
+            grid-template-columns:repeat(4,1fr);
+            grid-auto-rows:1fr;
+            gap:clamp(6px,1.5vw,12px);
+            width:100%;
+            max-width:95vw;
+            margin:20px auto;
+            padding:clamp(8px,2vw,15px);
+            justify-items:center;
+            align-items:center;
+            aspect-ratio:1 / 1;
+            max-height:calc(100vh - 380px);
         }
+
         .card{
-            aspect-ratio:1;perspective:1000px;cursor:pointer;width:100%;height:22vw;
-            max-height:90px;max-width:90px;
+            width:100%;
+            height:100%;
+            max-width:120px;
+            max-height:120px;
+            aspect-ratio:1;
+            perspective:1000px;
+            cursor:pointer;
         }
         .card-inner{
             position:relative;width:100%;height:100%;transition:transform .7s cubic-bezier(.25,.46,.45,.94);
@@ -156,11 +174,11 @@
         @keyframes matchGlow{0%{filter:drop-shadow(0 0 0px #00ff88)}50%{filter:drop-shadow(0 0 35px #00ff88)}100%{filter:drop-shadow(0 0 25px #00ff88)}}
 
         #score{font-size:clamp(1.8rem,6vw,2.8rem);font-weight:800;margin:20px 0;
-            text-shadow:0 0 30px currentColor;animation:scorePulse 2s ease-in-out infinite;text-align:center;}
+            text-shadow:0 0 30px currentColor;animation:scorePulse 2s ease-in-out infinite;text-align:center;flex-shrink:0;}
         @keyframes scorePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
 
         /* RESULTS */
-        #leaderboard{list-style:none;margin:25px 0;padding:0;width:100%;}
+        #leaderboard{list-style:none;margin:25px 0;padding:0;width:100%;flex-shrink:0;}
         #leaderboard li{padding:18px 15px;margin:10px 0;background:rgba(255,255,255,.15);
             border-radius:15px;font-size:clamp(1rem,4vw,1.2rem);font-weight:600;
             display:flex;justify-content:space-between;align-items:center;transition:all .3s ease;
@@ -182,7 +200,7 @@
         #winner{font-size:clamp(1.6rem,6vw,2.2rem);font-weight:900;margin:25px 0;padding:20px 15px;
             background:linear-gradient(45deg,#00ff88,#00cc6a);-webkit-background-clip:text;
             -webkit-text-fill-color:transparent;background-clip:text;text-shadow:0 0 40px #00ff88;
-            animation:winnerBounce 1s ease infinite;text-align:center;line-height:1.3;}
+            animation:winnerBounce 1s ease infinite;text-align:center;line-height:1.3;flex-shrink:0;}
         @keyframes winnerBounce{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 
         .error{color:#ff6b6b;background:rgba(255,107,107,.2);padding:15px;border-radius:12px;
@@ -214,15 +232,37 @@
         }
         .team-credits strong{color:#ffd700;}
 
-        @media (max-width:480px){
-            body{padding:5px;}.panel{padding:20px 15px;margin:5px 0;}
-            .card{height:18vw;}#gameGrid{gap:6px;padding:8px;}
-            .btn{padding:16px 20px;min-height:55px;gap:10px;}.player-name{max-width:50%;}
-            .team-credits{bottom:5px;left:5px;padding:6px 10px;font-size:.75rem;}
-            .panel h1::before{font-size:1.4em;}
-            #adminBtn::before, #playerBtn::before{font-size:1.2em;}
+        /* RESPONSIVE PORTRAIT & LANDSCAPE */
+        @media (orientation: portrait) {
+            #gameGrid {
+                max-height:calc(100vh - 380px);
+            }
+            .panel { max-width: 90vw; }
         }
-        @media (max-height:600px){#gameGrid{max-height:40vh;}.card{height:18vw;}}
+
+        @media (orientation: landscape) and (max-height: 600px) {
+            .container { padding: 8px; }
+            .panel { padding: 15px 18px; margin: 6px 0; }
+            #gameGrid {
+                max-height:calc(100vh - 300px);
+                gap: clamp(4px, 1vw, 8px);
+                padding: clamp(6px, 1.5vw, 10px);
+            }
+            .card { max-width: 90px; max-height: 90px; }
+            #score, #timerText { font-size: clamp(1.6rem, 6vw, 2.2rem); }
+            .btn { padding: 14px 20px; min-height: 50px; font-size: clamp(0.9rem, 3.5vw, 1.1rem); }
+            .team-credits { bottom: 6px; left: 6px; padding: 6px 10px; font-size: .75rem; }
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 5px; }
+            .panel { padding: 18px 15px; margin: 6px 0; }
+            .btn { padding: 14px 18px; min-height: 52px; gap: 8px; }
+            .player-name { max-width: 48%; }
+            .team-credits { bottom: 5px; left: 5px; padding: 5px 8px; font-size: .7rem; }
+            #adminBtn::before, #playerBtn::before { font-size: 1.2em; }
+        }
+
         .hidden{display:none !important;}
 
         ::-webkit-scrollbar{width:6px;}
@@ -335,14 +375,8 @@
 
         // GAMBAR LANGSUNG DARI URL (FOTO KAMU)
         const cardImages = [
-            'kunyit.png', // Kunyit (hitam)
-            'lengkuas.png', // Kunyit (putih)
-            'ikan-sarden.png', // Ikan Nila
-            'ikan-nila.png', // Ikan Salmon
-            'ikan-salmon.png', // Ikan Sarden
-            'ikan-tuna.png', // Ikan Tuna
-            'beras-kencur.png', // Jahe
-            'jahe.png'  // Lengkuas
+            'kunyit.png', 'lengkuas.png', 'ikan-sarden.png', 'ikan-nila.png',
+            'ikan-salmon.png', 'ikan-tuna.png', 'beras-kencur.png', 'jahe.png'
         ];
         let cardsArray = [];
 
@@ -475,9 +509,8 @@
                 firstCard.classList.add('matched');secondCard.classList.add('matched');
                 currentScore+=10;matches++;updateScore();resetBoard();
 
-                // CEK JIKA SEMUA KARTU SELESAI
                 if(matches === cardImages.length){
-                    setTimeout(restartRound, 800); // RESTART SETELAH SELESAI
+                    setTimeout(restartRound, 800);
                 }
             }else{
                 setTimeout(()=>{firstCard.classList.remove('flipped');
@@ -485,14 +518,12 @@
             }
         }
 
-        // RESTART RONDE BARU (TANPA RESET SKOR)
         function restartRound(){
             matches = 0;
             firstCard = secondCard = null;
             lockBoard = false;
             cardsArray = shuffle([...cardImages, ...cardImages]);
             createGameBoard();
-            // Efek "Ronde Baru!"
             const scoreEl = document.getElementById('score');
             scoreEl.style.animation = 'none';
             setTimeout(() => scoreEl.style.animation = '', 10);
@@ -571,7 +602,7 @@
 
         window.addEventListener('beforeunload',()=>{if(playerId && !isAdmin)playersRef.child(playerId).remove();});
         document.addEventListener('keydown',e=>{if(e.key==='Escape'){resetGameState();showPage('home');}});
-        console.log('FITUR RESTART RONDE SUDAH AKTIF!');
+        console.log('GAME RESPONSIF PORTRAIT & LANDSCAPE SUDAH AKTIF!');
     </script>
 </body>
 </html>
